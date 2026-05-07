@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — Metabolismo Activo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{
+  --bg:#080c10;--surface:#0f1620;--surface2:#151e2e;--surface3:#1a2540;
+  --border:#1e2d42;--border2:#263a56;
+  --accent:#00e5a0;--accent2:#00b8d9;--accent3:#ff6b35;--accent4:#a78bfa;
+  --text:#e2eaf4;--text2:#7a90a8;--text3:#4a6070;
+  --danger:#f85149;--warn:#f0b429;--success:#3fb950;
+  --r:12px;--shadow:0 8px 40px rgba(0,0,0,.6);
+  --admin:#7c3aed;--admin2:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(ellipse 60% 40% at 0% 0%,rgba(124,58,237,.07) 0%,transparent 60%),
+  radial-gradient(ellipse 50% 40% at 100% 100%,rgba(0,184,217,.05) 0%,transparent 60%);
+  pointer-events:none;z-index:0}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:240px 1fr;min-height:100vh;position:relative;z-index:1}
+@media(max-width:768px){.layout{grid-template-columns:1fr}}
+
+/* SIDEBAR */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-header{padding:20px 18px 16px;border-bottom:1px solid var(--border)}
+.sidebar-logo{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.logo-badge{width:36px;height:36px;background:linear-gradient(135deg,var(--admin),var(--admin2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;background:linear-gradient(90deg,var(--admin2),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.admin-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--admin2)}
+.nav-section{padding:14px 10px 4px}
+.nav-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);padding:0 8px;margin-bottom:6px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--text2);transition:all .18s;border:1px solid transparent;margin-bottom:2px}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:rgba(124,58,237,.12);color:var(--admin2);border-color:rgba(124,58,237,.25)}
+.nav-item i{width:18px;text-align:center;font-size:14px}
+.sidebar-footer{margin-top:auto;padding:14px 10px;border-top:1px solid var(--border)}
+
+/* MAIN */
+.main{padding:0;overflow-y:auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;display:flex;align-items:center;gap:10px}
+.page-content{padding:24px 28px;max-width:1100px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow)}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+.card-body{padding:20px}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:900px){.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:1fr 1fr}.grid-2{grid-template-columns:1fr}}
+
+/* STAT CARDS */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;transition:border-color .2s}
+.stat-card:hover{border-color:var(--admin2)}
+.stat-icon{font-size:20px;margin-bottom:8px}
+.stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800}
+.stat-lbl{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* INPUTS */
+input,select,textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 13px;font-family:'DM Sans',sans-serif;font-size:13.5px;width:100%;outline:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--admin2);box-shadow:0 0 0 2px rgba(167,139,250,.12)}
+select option{background:var(--surface2)}
+::placeholder{color:var(--text3)}
+textarea{resize:vertical;min-height:80px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-weight:600;font-size:12px;margin-bottom:5px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px}
+.form-hint{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;border:none;transition:all .18s;white-space:nowrap}
+.btn-primary{background:linear-gradient(135deg,var(--admin),var(--admin2));color:#fff}
+.btn-primary:hover{opacity:.88;transform:translateY(-1px)}
+.btn-accent{background:var(--accent);color:#0b0f14}
+.btn-accent:hover{background:#00c987}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--admin2);color:var(--admin2)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-full{width:100%}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700}
+.badge-green{background:rgba(0,229,160,.13);color:var(--accent)}
+.badge-blue{background:rgba(0,184,217,.13);color:var(--accent2)}
+.badge-purple{background:rgba(167,139,250,.13);color:var(--admin2)}
+.badge-orange{background:rgba(255,107,53,.13);color:var(--accent3)}
+.badge-yellow{background:rgba(240,180,41,.13);color:var(--warn)}
+.badge-red{background:rgba(248,81,73,.13);color:var(--danger)}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);border-bottom:1px solid var(--border);background:var(--surface2)}
+td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(124,58,237,.04)}
+
+/* TOGGLE */
+.toggle{position:relative;display:inline-block;width:42px;height:22px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--surface3);border-radius:99px;transition:.3s;border:1px solid var(--border)}
+.toggle-slider:before{content:"";position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:var(--text3);border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-slider{background:rgba(124,58,237,.3);border-color:var(--admin2)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(20px);background:var(--admin2)}
+
+/* PROGRESS */
+.progress{height:6px;background:var(--surface3);border-radius:99px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:99px;transition:width .5s}
+
+/* TOAST */
+.toast-admin{position:fixed;top:20px;right:20px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;font-weight:600;box-shadow:var(--shadow);z-index:9999;transform:translateX(120%);transition:transform .3s;max-width:320px}
+.toast-admin.show{transform:translateX(0)}
+.toast-admin.success{border-color:var(--accent);color:var(--accent)}
+.toast-admin.error{border-color:var(--danger);color:var(--danger)}
+.toast-admin.warn{border-color:var(--warn);color:var(--warn)}
+
+/* SEPARATOR */
+.sep{height:1px;background:var(--border);margin:20px 0}
+
+/* COLOR SWATCH */
+.swatch-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.swatch{width:32px;height:32px;border-radius:7px;cursor:pointer;border:2px solid transparent;transition:all .18s;position:relative}
+.swatch.active{border-color:#fff;transform:scale(1.15)}
+.swatch-input{width:44px;height:32px;border-radius:7px;padding:2px;cursor:pointer;border:1px solid var(--border);background:var(--surface2)}
+
+/* PRODUCT EDITOR */
+.product-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;transition:border-color .18s}
+.product-item:hover{border-color:var(--admin2)}
+.product-item-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+
+/* TABS */
+.tabs-bar{display:flex;gap:4px;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:20px;overflow-x:auto}
+.tab-btn{flex-shrink:0;padding:8px 16px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab-btn.active{background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(167,139,250,.2));color:var(--admin2);border:1px solid rgba(124,58,237,.3)}
+
+/* ACCORDION */
+.accord-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.accord-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none;font-weight:600;font-size:14px}
+.accord-header:hover{background:rgba(124,58,237,.05)}
+.accord-body{padding:0 16px;max-height:0;overflow:hidden;transition:max-height .3s,padding .3s}
+.accord-body.open{max-height:1000px;padding:0 16px 16px}
+
+/* SECTION */
+.section{margin-bottom:28px}
+.section-title{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;margin-bottom:14px;display:flex;align-items:center;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+
+/* EXERCISE EDITOR */
+.exercise-edit-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;background:var(--surface3);border-radius:8px;padding:10px}
+.exercise-edit-row input{background:var(--surface2)}
+.del-btn{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.25);color:var(--danger);border-radius:6px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:13px;transition:all .18s;margin-top:6px}
+.del-btn:hover{background:rgba(248,81,73,.25)}
+
+/* USER CARD */
+.user-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.user-row:last-child{border-bottom:none}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--admin),var(--admin2));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.user-info{flex:1}
+.user-name{font-weight:600;font-size:14px}
+.user-meta{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* PREVIEW */
+.preview-frame{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;min-height:80px}
+
+/* MOBILE HIDE */
+@media(max-width:768px){.sidebar{display:none}.grid-3,.grid-4{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div class="toast-admin" id="toastAdmin"></div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-badge">⚙️</div>
+        <div class="logo-text">Admin Panel</div>
+      </div>
+      <div class="admin-badge"><i class="fas fa-shield-halved"></i> Administrador</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">General</div>
+      <div class="nav-item active" onclick="switchSection('dashboard')"><i class="fas fa-gauge-high"></i> Dashboard</div>
+      <div class="nav-item" onclick="switchSection('usuarios')"><i class="fas fa-users"></i> Usuarios</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Contenido</div>
+      <div class="nav-item" onclick="switchSection('prompts')"><i class="fas fa-robot"></i> Prompts IA</div>
+      <div class="nav-item" onclick="switchSection('rutinas')"><i class="fas fa-dumbbell"></i> Rutinas</div>
+      <div class="nav-item" onclick="switchSection('meditacion')"><i class="fas fa-brain"></i> Meditación</div>
+      <div class="nav-item" onclick="switchSection('tienda')"><i class="fas fa-store"></i> Tienda</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Sistema</div>
+      <div class="nav-item" onclick="switchSection('gamificacion')"><i class="fas fa-trophy"></i> Gamificación</div>
+      <div class="nav-item" onclick="switchSection('dieta')"><i class="fas fa-utensils"></i> Parámetros Dieta</div>
+      <div class="nav-item" onclick="switchSection('apariencia')"><i class="fas fa-palette"></i> Apariencia</div>
+      <div class="nav-item" onclick="switchSection('apikeys')"><i class="fas fa-key"></i> API Keys</div>
+      <div class="nav-item" onclick="switchSection('config')"><i class="fas fa-sliders"></i> Configuración</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="nav-item" style="color:var(--danger);" onclick="exportConfig()"><i class="fas fa-download"></i> Exportar Config</div>
+      <div class="nav-item" onclick="importConfig()"><i class="fas fa-upload"></i> Importar Config</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="pageTitle"><span>📊</span> Dashboard</div>
+      <div class="btn-group">
+        <button class="btn btn-secondary btn-sm" onclick="loadFromStorage()"><i class="fas fa-refresh"></i> Recargar</button>
+        <button class="btn btn-primary btn-sm" onclick="saveAllChanges()"><i class="fas fa-save"></i> Guardar Cambios</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <!-- ══ DASHBOARD ══ -->
+      <section id="sec-dashboard" class="tab-section">
+        <div class="section-title">📊 Resumen de la plataforma</div>
+        <div class="grid-4" style="margin-bottom:24px">
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-val" id="s-usuarios">0</div>
+            <div class="stat-lbl">Usuarios registrados</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-val" id="s-logros">8</div>
+            <div class="stat-lbl">Logros configurados</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🛍️</div>
+            <div class="stat-val" id="s-productos">0</div>
+            <div class="stat-lbl">Productos en tienda</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🧘</div>
+            <div class="stat-val" id="s-videos">0</div>
+            <div class="stat-lbl">Videos meditación</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-users" style="color:var(--admin2)"></i> Usuarios recientes</div></div>
+            <div class="card-body" id="dash-usuarios-list"><p style="color:var(--text2);font-size:13px;">Cargando...</p></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-info-circle" style="color:var(--accent2)"></i> Estado del sistema</div></div>
+            <div class="card-body">
+              <div style="display:flex;flex-direction:column;gap:12px;font-size:13px;">
+                <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--text2)">Modelo IA activo</span><span class="badge badge-green">GLM-5 Turbo</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--text2)">Almacenamiento</span><span class="badge badge-blue">localStorage</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--text2)">Dieta fat_loss</span><span class="badge badge-orange" id="d-fl">3x1</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--text2)">Dieta muscle_gain</span><span class="badge badge-purple" id="d-mg">2x1</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--text2)">Puntos racha 7 días</span><span id="d-racha-pts" class="badge badge-yellow">50 pts</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--text2)">Baja grasa/mes</span><span id="d-fat-rate" class="badge badge-green">2.5 kg</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--text2)">Ganancia músculo/mes</span><span id="d-mus-rate" class="badge badge-blue">1.2 kg</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ USUARIOS ══ -->
+      <section id="sec-usuarios" class="tab-section" style="display:none">
+        <div class="section-title">👥 Gestión de usuarios</div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title"><i class="fas fa-search"></i> Buscar usuario</div></div>
+          <div class="card-body">
+            <input id="userSearch" placeholder="Buscar por nombre, email o usuario..." oninput="filterUsers()">
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-list"></i> Lista de usuarios</div>
+            <button class="btn btn-danger btn-sm" onclick="clearAllUsers()"><i class="fas fa-trash"></i> Limpiar todos</button>
+          </div>
+          <div class="card-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Usuario</th><th>Email</th><th>Plan</th><th>Puntos</th><th>Racha</th><th>Acciones</th></tr></thead>
+                <tbody id="users-tbody"><tr><td colspan="6" style="text-align:center;color:var(--text2)">No hay usuarios registrados</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ PROMPTS IA ══ -->
+      <section id="sec-prompts" class="tab-section" style="display:none">
+        <div class="section-title">🤖 Prompts del Sistema IA</div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title"><i class="fas fa-comment-dots" style="color:var(--accent)"></i> Prompt principal del coach</div></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">System Prompt — Coach de Nutrición</label>
+              <textarea id="p-system" rows="10" style="font-family:monospace;font-size:12px;line-height:1.6"></textarea>
+              <div class="form-hint">Este prompt define el comportamiento del asistente IA en el chat. Modifícalo para ajustar el tono, metodología y conocimiento.</div>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-primary" onclick="savePrompt('system')"><i class="fas fa-save"></i> Guardar prompt</button>
+              <button class="btn btn-secondary" onclick="resetPrompt('system')"><i class="fas fa-undo"></i> Restaurar original</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-camera" style="color:var(--accent3)"></i> Prompt del Scanner de Alimentos</div></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">System Prompt — Analizador de imágenes</label>
+              <textarea id="p-scanner" rows="14" style="font-family:monospace;font-size:12px;line-height:1.6"></textarea>
+              <div class="form-hint">Controla cómo la IA analiza fotos de alimentos. Debe retornar JSON estrictamente. Modifica los campos o la lógica de scoring con cuidado.</div>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-primary" onclick="savePrompt('scanner')"><i class="fas fa-save"></i> Guardar prompt</button>
+              <button class="btn btn-secondary" onclick="resetPrompt('scanner')"><i class="fas fa-undo"></i> Restaurar original</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ RUTINAS ══ -->
+      <section id="sec-rutinas" class="tab-section" style="display:none">
+        <div class="section-title">🏋️ Editor de Rutinas</div>
+        <div class="tabs-bar">
+          <button class="tab-btn active" id="rt-fl-btn" onclick="switchRutinaTab('fat_loss')">🔥 Fat Loss (3x1)</button>
+          <button class="tab-btn" id="rt-mg-btn" onclick="switchRutinaTab('muscle_gain')">💪 Muscle Gain (2x1)</button>
+        </div>
+        <div id="rutinas-editor"></div>
+      </section>
+
+      <!-- ══ MEDITACIÓN ══ -->
+      <section id="sec-meditacion" class="tab-section" style="display:none">
+        <div class="section-title">🧘 Editor de Videos de Meditación</div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title"><i class="fas fa-plus" style="color:var(--accent)"></i> Agregar video</div></div>
+          <div class="card-body">
+            <div class="grid-2">
+              <div class="form-group"><label class="form-label">Título</label><input id="med-titulo" placeholder="Meditación para bajar cortisol"></div>
+              <div class="form-group"><label class="form-label">Subtítulo</label><input id="med-sub" placeholder="Reduce el estrés..."></div>
+              <div class="form-group"><label class="form-label">Duración</label><input id="med-dur" placeholder="10 min"></div>
+              <div class="form-group"><label class="form-label">Emoji</label><input id="med-icon" placeholder="🧠" style="max-width:80px"></div>
+              <div class="form-group" style="grid-column:1/-1"><label class="form-label">URL YouTube Embed</label><input id="med-yt" placeholder="https://www.youtube.com/embed/ID_DEL_VIDEO"></div>
+            </div>
+            <button class="btn btn-accent" onclick="addMeditacion()"><i class="fas fa-plus"></i> Agregar video</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-list"></i> Videos actuales</div></div>
+          <div class="card-body" id="med-list"></div>
+        </div>
+      </section>
+
+      <!-- ══ TIENDA ══ -->
+      <section id="sec-tienda" class="tab-section" style="display:none">
+        <div class="section-title">🛍️ Editor de Tienda</div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title"><i class="fas fa-plus" style="color:var(--accent)"></i> Agregar producto</div></div>
+          <div class="card-body">
+            <div class="grid-2">
+              <div class="form-group"><label class="form-label">Nombre</label><input id="prod-nombre" placeholder="Proteína Whey Premium"></div>
+              <div class="form-group"><label class="form-label">Emoji</label><input id="prod-emoji" placeholder="🥛" style="max-width:80px"></div>
+              <div class="form-group"><label class="form-label">Precio (€)</label><input id="prod-precio" type="number" placeholder="45"></div>
+              <div class="form-group"><label class="form-label">Precio en puntos</label><input id="prod-puntos" type="number" placeholder="450"></div>
+              <div class="form-group"><label class="form-label">Stock</label><input id="prod-stock" type="number" placeholder="10"></div>
+              <div class="form-group"><label class="form-label">Descripción</label><input id="prod-desc" placeholder="24g proteína por porción..."></div>
+            </div>
+            <button class="btn btn-accent" onclick="addProducto()"><i class="fas fa-plus"></i> Agregar producto</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-box"></i> Productos en tienda</div></div>
+          <div class="card-body" id="prod-list"></div>
+        </div>
+      </section>
+
+      <!-- ══ GAMIFICACIÓN ══ -->
+      <section id="sec-gamificacion" class="tab-section" style="display:none">
+        <div class="section-title">🏆 Sistema de Gamificación</div>
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-coins" style="color:var(--warn)"></i> Puntos por acción</div></div>
+            <div class="card-body" id="puntos-editor"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-fire" style="color:var(--accent3)"></i> Configuración de racha</div></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Puntos bonus por racha (cada X días)</label>
+                <input id="g-racha-pts" type="number" value="50">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Frecuencia de bonus (días)</label>
+                <input id="g-racha-freq" type="number" value="7">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Mensaje de racha completada</label>
+                <input id="g-racha-msg" value="🎉 ¡Racha de {n} días! +{pts} puntos bonus">
+                <div class="form-hint">Usa {n} para el número de días y {pts} para los puntos.</div>
+              </div>
+              <button class="btn btn-primary btn-full" onclick="saveGamificacion()"><i class="fas fa-save"></i> Guardar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-medal" style="color:var(--warn)"></i> Logros del sistema</div></div>
+          <div class="card-body" id="logros-editor"></div>
+        </div>
+      </section>
+
+      <!-- ══ DIETA ══ -->
+      <section id="sec-dieta" class="tab-section" style="display:none">
+        <div class="section-title">🥗 Parámetros de Dieta</div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-fire-flame-curved" style="color:var(--accent3)"></i> Dieta 3x1 — Fat Loss</div></div>
+            <div class="card-body">
+              <div class="form-group"><label class="form-label">% Tipo A (carnes, huevos, vegetales)</label><input id="d-fl-a" type="number" value="75" min="0" max="100"></div>
+              <div class="form-group"><label class="form-label">% Tipo E (pan, pasta, arroz)</label><input id="d-fl-e" type="number" value="25" min="0" max="100"></div>
+              <div class="form-group"><label class="form-label">Pérdida mensual objetivo (kg)</label><input id="d-fl-rate" type="number" value="2.5" step="0.1"></div>
+              <div class="form-group"><label class="form-label">Peso mínimo permitido (kg)</label><input id="d-fl-min" type="number" value="45"></div>
+              <div class="form-group"><label class="form-label">Hidratación: Peso ÷ X = vasos/día</label><input id="d-fl-hidra" type="number" value="7" step="0.5"></div>
+              <div class="form-group"><label class="form-label">Tamaño de vaso (ml)</label><input id="d-fl-vaso" type="number" value="250"></div>
+              <button class="btn btn-primary btn-full" onclick="saveDieta()"><i class="fas fa-save"></i> Guardar</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-dumbbell" style="color:var(--accent2)"></i> Dieta 2x1 — Muscle Gain</div></div>
+            <div class="card-body">
+              <div class="form-group"><label class="form-label">% Tipo A</label><input id="d-mg-a" type="number" value="66" min="0" max="100"></div>
+              <div class="form-group"><label class="form-label">% Tipo E</label><input id="d-mg-e" type="number" value="34" min="0" max="100"></div>
+              <div class="form-group"><label class="form-label">Ganancia mensual objetivo (kg)</label><input id="d-mg-rate" type="number" value="1.2" step="0.1"></div>
+              <div class="form-group"><label class="form-label">Hidratación: Peso ÷ X = vasos/día</label><input id="d-mg-hidra" type="number" value="8" step="0.5"></div>
+              <div class="form-group"><label class="form-label">Tamaño de vaso (ml)</label><input id="d-mg-vaso" type="number" value="250"></div>
+              <div class="form-group"><label class="form-label">Meses de proyección de metas</label><input id="d-meses" type="number" value="6"></div>
+              <button class="btn btn-primary btn-full" onclick="saveDieta()"><i class="fas fa-save"></i> Guardar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-header"><div class="card-title"><i class="fas fa-brain" style="color:var(--accent4)"></i> Sistema Nervioso y Cándida</div></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Sistema nervioso pasivo — recomendaciones</label>
+              <textarea id="d-snp" rows="3" placeholder="Frío, cansancio → más carne roja, especias..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sistema nervioso excitado — recomendaciones</label>
+              <textarea id="d-sne" rows="3" placeholder="Ansiedad, insomnio → más vegetales, pescado..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Protocolo Cándida — duración (semanas)</label>
+              <input id="d-candida-dur" type="number" value="2">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Alimentos a eliminar en Cándida</label>
+              <input id="d-candida-elim" value="azúcares, fermentados, pan, pasta, arroz">
+            </div>
+            <button class="btn btn-primary" onclick="saveDieta()"><i class="fas fa-save"></i> Guardar parámetros</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ APARIENCIA ══ -->
+      <section id="sec-apariencia" class="tab-section" style="display:none">
+        <div class="section-title">🎨 Apariencia de la plataforma</div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-palette" style="color:var(--accent)"></i> Colores del sistema</div></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Color de fondo principal</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="color" id="c-bg" value="#0b0f14" class="swatch-input">
+                  <input id="c-bg-txt" value="#0b0f14" style="font-family:monospace">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Color de acento principal (verde)</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="color" id="c-accent" value="#00e5a0" class="swatch-input">
+                  <input id="c-accent-txt" value="#00e5a0" style="font-family:monospace">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Color de acento secundario (azul)</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="color" id="c-accent2" value="#00b8d9" class="swatch-input">
+                  <input id="c-accent2-txt" value="#00b8d9" style="font-family:monospace">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Color de acento terciario (naranja)</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="color" id="c-accent3" value="#ff6b35" class="swatch-input">
+                  <input id="c-accent3-txt" value="#ff6b35" style="font-family:monospace">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Color morado (logros/detalles)</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="color" id="c-accent4" value="#a78bfa" class="swatch-input">
+                  <input id="c-accent4-txt" value="#a78bfa" style="font-family:monospace">
+                </div>
+              </div>
+              <button class="btn btn-primary btn-full" onclick="saveApariencia()"><i class="fas fa-save"></i> Aplicar colores</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-text-height" style="color:var(--accent2)"></i> Textos de la app</div></div>
+            <div class="card-body">
+              <div class="form-group"><label class="form-label">Nombre de la app</label><input id="t-appname" value="Metabolismo Activo"></div>
+              <div class="form-group"><label class="form-label">Slogan / subtítulo</label><input id="t-slogan" value="Nutrición &amp; Entrenamiento — Método Frank Suárez"></div>
+              <div class="form-group"><label class="form-label">Emoji del logo</label><input id="t-emoji" value="⚡" style="max-width:70px"></div>
+              <div class="form-group"><label class="form-label">Mensaje de bienvenida</label><textarea id="t-welcome" rows="2">¡Bienvenido a tu plataforma de salud!</textarea></div>
+              <div class="form-group"><label class="form-label">Mensaje chip de puntos (ej: "pts")</label><input id="t-pts-label" value="pts"></div>
+              <button class="btn btn-primary btn-full" onclick="saveApariencia()"><i class="fas fa-save"></i> Guardar textos</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-header"><div class="card-title"><i class="fas fa-eye" style="color:var(--warn)"></i> Vista previa de colores</div></div>
+          <div class="card-body">
+            <div id="color-preview" class="preview-frame" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+              <div id="prev-accent" style="width:80px;height:34px;border-radius:8px;background:#00e5a0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0b0f14">Acento</div>
+              <div id="prev-accent2" style="width:80px;height:34px;border-radius:8px;background:#00b8d9;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0b0f14">Azul</div>
+              <div id="prev-accent3" style="width:80px;height:34px;border-radius:8px;background:#ff6b35;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0b0f14">Naranja</div>
+              <div id="prev-accent4" style="width:80px;height:34px;border-radius:8px;background:#a78bfa;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0b0f14">Morado</div>
+              <div id="prev-bg" style="width:80px;height:34px;border-radius:8px;background:#0b0f14;border:1px solid #232f42;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#e2eaf4">Fondo</div>
+            </div>
+            <div class="form-hint" style="margin-top:8px">La vista previa se actualiza al cambiar los colores. Los cambios se aplican en el HTML de la plataforma al guardar.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ CONFIGURACIÓN ══ -->
+      <section id="sec-config" class="tab-section" style="display:none">
+        <div class="section-title">⚙️ Configuración general</div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-robot" style="color:var(--accent)"></i> IA y API</div></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label class="form-label">Modelo de IA</label>
+                <select id="cfg-model">
+                  <option value="glm-5-turbo">GLM-5 Turbo (recomendado)</option>
+                  <option value="glm-4-plus">GLM-4 Plus (estable)</option>
+                  <option value="glm-4v-plus">GLM-4V Plus (con visión/scanner)</option>
+                  <option value="glm-4-flash">GLM-4 Flash (más rápido)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Max tokens por respuesta</label>
+                <input id="cfg-tokens" type="number" value="1000">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Temperatura del chat (0.0 - 1.0)</label>
+                <input id="cfg-temp" type="number" value="0.7" step="0.1" min="0" max="1">
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-toggle-on" style="color:var(--accent2)"></i> Funciones activas</div></div>
+            <div class="card-body">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px">
+                  <div><div style="font-weight:600">Scanner de alimentos IA</div><div style="font-size:11px;color:var(--text2)">Análisis de imágenes con visión</div></div>
+                  <label class="toggle"><input type="checkbox" id="f-scanner" checked><span class="toggle-slider"></span></label>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px">
+                  <div><div style="font-weight:600">Chat con coach IA</div><div style="font-size:11px;color:var(--text2)">Asistente conversacional</div></div>
+                  <label class="toggle"><input type="checkbox" id="f-chat" checked><span class="toggle-slider"></span></label>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px">
+                  <div><div style="font-weight:600">Tienda de puntos</div><div style="font-size:11px;color:var(--text2)">Canje de productos</div></div>
+                  <label class="toggle"><input type="checkbox" id="f-tienda" checked><span class="toggle-slider"></span></label>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px">
+                  <div><div style="font-weight:600">Sistema de logros</div><div style="font-size:11px;color:var(--text2)">Badges y achievements</div></div>
+                  <label class="toggle"><input type="checkbox" id="f-logros" checked><span class="toggle-slider"></span></label>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px">
+                  <div><div style="font-weight:600">Fotos de progreso</div><div style="font-size:11px;color:var(--text2)">Subida de imágenes</div></div>
+                  <label class="toggle"><input type="checkbox" id="f-fotos" checked><span class="toggle-slider"></span></label>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px">
+                  <div><div style="font-weight:600">Meditación y videos</div><div style="font-size:11px;color:var(--text2)">Sección de mente</div></div>
+                  <label class="toggle"><input type="checkbox" id="f-mente" checked><span class="toggle-slider"></span></label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-header"><div class="card-title"><i class="fas fa-code" style="color:var(--accent4)"></i> Generar HTML actualizado</div></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Genera un fragmento con los parámetros configurados que puedes aplicar al archivo principal de la plataforma.</p>
+            <button class="btn btn-accent" onclick="generatePatch()"><i class="fas fa-code"></i> Generar parche de configuración</button>
+            <div id="patch-output" style="display:none;margin-top:14px">
+              <label class="form-label" style="margin-bottom:8px">Copia este bloque y reemplázalo en el HTML principal:</label>
+              <textarea id="patch-code" rows="16" style="font-family:monospace;font-size:11px" readonly></textarea>
+              <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="copyPatch()"><i class="fas fa-copy"></i> Copiar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ API KEYS ══ -->
+      <section id="sec-apikeys" class="tab-section" style="display:none">
+        <div class="section-title">🔑 API Keys</div>
+
+        <!-- GLM API Key -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-key" style="color:var(--admin2)"></i> GLM API Key (ZhipuAI)</div>
+            <div id="apikey-status" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600">
+              <span id="apikey-dot" style="width:8px;height:8px;border-radius:50%;background:var(--danger);display:inline-block"></span>
+              <span id="apikey-label" style="color:var(--danger)">No configurada</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--text2);margin-bottom:14px">
+              Esta API key se utiliza para el chat con el coach IA y el scanner de alimentos. Necesitas una clave válida de <a href="https://open.bigmodel.cn/" target="_blank" style="color:var(--admin2);text-decoration:underline">ZhipuAI (BigModel)</a>.
+            </p>
+            <div class="form-group">
+              <label class="form-label">API Key</label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="password" id="apikey-anthropic" placeholder="Tu API key de ZhipuAI..." style="flex:1;font-family:monospace;font-size:13px">
+                <button class="btn btn-secondary btn-sm" onclick="toggleAPIKeyVisibility()" id="apikey-toggle-btn" title="Mostrar/ocultar clave">
+                  <i class="fas fa-eye" id="apikey-toggle-icon"></i>
+                </button>
+              </div>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-primary" onclick="saveAPIKey()"><i class="fas fa-save"></i> Guardar clave</button>
+              <button class="btn btn-secondary" onclick="testAPIKey()" id="apikey-test-btn"><i class="fas fa-plug"></i> Test Connection</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- API Connection Info -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title"><i class="fas fa-info-circle" style="color:var(--accent2)"></i> Información de conexión API</div></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:12px;font-size:13px;">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="color:var(--text2)">Modelo seleccionado</span>
+                <span class="badge badge-purple" id="apikey-model">glm-5-turbo</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="color:var(--text2)">Endpoint</span>
+                <span class="badge badge-blue" style="font-family:monospace;font-size:10px">open.bigmodel.cn/api/paas/v4</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="color:var(--text2)">Último test realizado</span>
+                <span id="apikey-last-test" style="color:var(--text3);font-size:12px">Nunca</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Note -->
+        <div class="card" style="border-color:rgba(240,180,41,.25)">
+          <div class="card-header"><div class="card-title"><i class="fas fa-shield-halved" style="color:var(--warn)"></i> Nota de seguridad</div></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--text2);line-height:1.6">
+              <i class="fas fa-lock" style="color:var(--warn);margin-right:4px"></i>
+              La API key se almacena localmente en el navegador (localStorage). Nunca se envía a servidores externos excepto a la API de ZhipuAI para procesar las solicitudes.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+/* ════════════════════════════════
+   DATOS POR DEFECTO
+════════════════════════════════ */
+const DEFAULTS = {
+  system_prompt: `Eres un experto en nutrición y salud basado en el Método del Dr. Frank Suárez (Metabolismo Activo).
+Tu conocimiento incluye:
+- Dieta 3x1 (adelgazar): 75% Tipo A (carnes, pescados, huevos, vegetales, nueces, quesos) y 25% Tipo E (pan, pasta, arroz, azúcar, jugos).
+- Dieta 2x1 (ganar músculo): 66% Tipo A y 34% Tipo E de calidad.
+- Hidratación: Peso(kg)/7 = vasos de 250ml al día (adelgazar). Peso/8 para músculo.
+- Sistema Nervioso Pasivo: frío, cansancio → más carne roja, especias.
+- Sistema Nervioso Excitado: ansiedad, insomnio → más vegetales, pescado.
+- Limpieza de Cándida: eliminar azúcares y fermentados 2 semanas.
+- Entrenamiento: sobrecarga progresiva, multiarticulares, frecuencia 2, mente-músculo, sueño 7-9h.
+Responde en español, de forma clara, motivadora y práctica con ejemplos.`,
+
+  scanner_prompt: `Eres un nutricionista experto del Método Frank Suárez. Cuando recibas una imagen de alimento, responde ÚNICAMENTE con JSON válido (sin markdown, sin backticks) con esta estructura exacta:
+{
+  "foodName": "nombre del plato",
+  "items": [{"name":"alimento","calories":0,"typeAorE":"A"}],
+  "totalCalories": 0,
+  "macros": {
+    "protein": {"amount": 0, "percentage": 0},
+    "carbs":   {"amount": 0, "percentage": 0},
+    "fat":     {"amount": 0, "percentage": 0}
+  },
+  "dietScore": 7,
+  "scoreLabel": "Muy bueno para tu dieta",
+  "typeARatio": 70,
+  "typeERatio": 30,
+  "recommendations": {
+    "positive": ["aspecto positivo 1","aspecto positivo 2"],
+    "improve":  ["mejora 1","mejora 2"],
+    "tip": "consejo personalizado según el método Frank Suárez"
+  }
+}`,
+
+  productos: [
+    {id:1,nombre:"Proteína Whey Premium (2kg)",emoji:"🥛",precioEUR:45,puntos:450,stock:10,desc:"24g proteína por porción, ideal post-entreno."},
+    {id:2,nombre:"Creatina Monohidrato (500g)",emoji:"💊",precioEUR:25,puntos:250,stock:15,desc:"Aumenta fuerza y rendimiento muscular."},
+    {id:3,nombre:"Cuerda para Saltar Pro",emoji:"🪢",precioEUR:12,puntos:120,stock:20,desc:"Cardio efectivo, ajustable para todos."},
+    {id:4,nombre:"Batidora Shaker (700ml)",emoji:"🫙",precioEUR:8,puntos:80,stock:30,desc:"Sin grumos, con compartimento de proteína."},
+    {id:5,nombre:"Magnesio + Potasio (60 cáps)",emoji:"🌿",precioEUR:18,puntos:180,stock:12,desc:"Minerales esenciales según Frank Suárez."},
+    {id:6,nombre:"Banda de Resistencia Kit",emoji:"🏋️",precioEUR:22,puntos:220,stock:8,desc:"4 niveles de resistencia, ideal en casa."}
+  ],
+
+  meditacion: [
+    {titulo:"Meditación para bajar el cortisol",sub:"Reduce el estrés que acumula grasa abdominal",dur:"10 min",icon:"🧠",yt:"https://www.youtube.com/embed/inpok4MKVLM"},
+    {titulo:"Respiración 4-7-8 para el sueño",sub:"Activa el sistema parasimpático para dormir profundo",dur:"8 min",icon:"🌙",yt:"https://www.youtube.com/embed/YRPh_GaiL8s"},
+    {titulo:"Mindfulness para el apetito",sub:"Aprende a diferenciar hambre real de ansiedad",dur:"12 min",icon:"🍃",yt:"https://www.youtube.com/embed/oGuyxJwkO_E"},
+    {titulo:"Visualización de metas",sub:"Programa tu mente para el cuerpo que quieres",dur:"15 min",icon:"🎯",yt:"https://www.youtube.com/embed/ZToicYcHIOU"},
+    {titulo:"Body Scan para la recuperación",sub:"Relaja músculos y mejora el sueño profundo",dur:"20 min",icon:"💆",yt:"https://www.youtube.com/embed/ihwcw_ofHKE"},
+    {titulo:"Conexión mente-músculo",sub:"Activa la consciencia corporal antes de entrenar",dur:"7 min",icon:"💪",yt:"https://www.youtube.com/embed/2n0HsFC4L4A"}
+  ],
+
+  logros: [
+    {id:"bienvenido",icon:"🎉",name:"Primer paso",desc:"Te registraste en Metabolismo Activo",puntos:0},
+    {id:"primera_foto",icon:"📸",name:"Primer registro",desc:"Subiste tu primera foto de progreso",puntos:15},
+    {id:"foto_balanza",icon:"⚖️",name:"Pesaje inicial",desc:"Tomaste tu foto de balanza — meta activada",puntos:20},
+    {id:"racha7",icon:"🔥",name:"Una semana de fuego",desc:"7 días consecutivos activo",puntos:50},
+    {id:"racha30",icon:"🏅",name:"Mes imparable",desc:"30 días de racha seguida",puntos:150},
+    {id:"scan10",icon:"🔬",name:"Nutricionista digital",desc:"Escaneaste 10 comidas con IA",puntos:80},
+    {id:"entrenos20",icon:"💪",name:"Atleta en formación",desc:"Completaste 20 entrenamientos",puntos:100},
+    {id:"puntos500",icon:"⭐",name:"Coleccionista de puntos",desc:"Acumulaste 500 puntos",puntos:50}
+  ],
+
+  puntos_acciones: {
+    foto_progreso: 15,
+    foto_balanza: 20,
+    scan_alimento: 5,
+    entreno_completado: 10,
+    vaso_agua: 1,
+    racha_bonus: 50
+  },
+
+  dieta: {
+    fl_a: 75, fl_e: 25, fl_rate: 2.5, fl_min: 45, fl_hidra: 7, fl_vaso: 250,
+    mg_a: 66, mg_e: 34, mg_rate: 1.2, mg_hidra: 8, mg_vaso: 250, meses: 6,
+    snp: "Frío, cansancio → más carne roja, especias.",
+    sne: "Ansiedad, insomnio → más vegetales, pescado.",
+    candida_dur: 2,
+    candida_elim: "azúcares, fermentados, pan, pasta, arroz"
+  },
+
+  apariencia: {
+    appname: "Metabolismo Activo",
+    slogan: "Nutrición & Entrenamiento — Método Frank Suárez",
+    emoji: "⚡",
+    welcome: "¡Bienvenido a tu plataforma de salud!",
+    pts_label: "pts",
+    c_bg: "#0b0f14",
+    c_accent: "#00e5a0",
+    c_accent2: "#00b8d9",
+    c_accent3: "#ff6b35",
+    c_accent4: "#a78bfa"
+  },
+
+  config: {
+    model: "glm-5-turbo",
+    max_tokens: 1000,
+    temperatura: 0.7,
+    f_scanner: true, f_chat: true, f_tienda: true,
+    f_logros: true, f_fotos: true, f_mente: true
+  },
+
+  gamificacion: {
+    racha_pts: 50,
+    racha_freq: 7,
+    racha_msg: "🎉 ¡Racha de {n} días! +{pts} puntos bonus"
+  },
+
+  rutinasFatLoss: [
+    {dia:"Lunes",tipo:"Fuerza + Cardio",icon:"🏋️",ejercicios:[
+      {name:"Sentadillas",icon:"🦵",sets:"4 × 12",tip:"Rodillas al nivel de los pies, espalda recta"},
+      {name:"Press de Banca",icon:"💪",sets:"3 × 12",tip:"Baja controlado 3 seg, sube explosivo"},
+      {name:"Remo con Barra",icon:"🔄",sets:"3 × 12",tip:"Codos pegados al cuerpo, contrae espalda"},
+      {name:"Caminata Rápida",icon:"🚶",sets:"25 min · 6 km/h",tip:"Ritmo que permita hablar pero con esfuerzo"}
+    ]},
+    {dia:"Martes",tipo:"Cardio HIIT",icon:"⚡",ejercicios:[
+      {name:"Sprint 30 seg",icon:"🏃",sets:"× 10 rondas",tip:"Máximo esfuerzo, recuperación completa"},
+      {name:"Trote suave 30 seg",icon:"🚶",sets:"× 10 rondas",tip:"Recuperación activa entre sprints"},
+      {name:"Salto con cuerda",icon:"🪢",sets:"3 × 2 min",tip:"Rodillas ligeramente flexionadas"}
+    ]},
+    {dia:"Miércoles",tipo:"Descanso activo",icon:"🧘",ejercicios:[
+      {name:"Yoga o Stretching",icon:"🧘",sets:"30 min",tip:"Prioriza cadenas posteriores y psoas"},
+      {name:"Caminata suave",icon:"🌿",sets:"20 min",tip:"Ritmo conversacional, zona 1 de FC"}
+    ]},
+    {dia:"Jueves",tipo:"Fuerza Upper",icon:"💪",ejercicios:[
+      {name:"Peso Muerto",icon:"🏋️",sets:"4 × 8",tip:"La barra roza las piernas en todo el recorrido"},
+      {name:"Dominadas Asistidas",icon:"⬆️",sets:"3 × 8",tip:"Retracción escapular antes de jalar"},
+      {name:"Press Militar",icon:"🙌",sets:"3 × 10",tip:"Core activo, no arquees la espalda baja"},
+      {name:"Bicicleta Estática",icon:"🚴",sets:"20 min · ritmo medio",tip:"Mantén cadencia de 70-80 rpm"}
+    ]},
+    {dia:"Viernes",tipo:"Full Body + Core",icon:"🔥",ejercicios:[
+      {name:"Burpees",icon:"💥",sets:"4 × 10",tip:"Explota en el salto, aterrizaje suave"},
+      {name:"Plancha Abdominal",icon:"🤸",sets:"4 × 45 seg",tip:"Línea recta de cabeza a talones"},
+      {name:"Mountain Climbers",icon:"⛰️",sets:"3 × 30 seg",tip:"Cadera abajo, ritmo sostenido"},
+      {name:"Extensiones de Espalda",icon:"🔙",sets:"3 × 15",tip:"Contrae glúteos al subir"}
+    ]},
+    {dia:"Sábado",tipo:"Cardio Moderado",icon:"🌅",ejercicios:[
+      {name:"Trote o Bicicleta",icon:"🚴",sets:"40 min · zona 2",tip:"FC entre 130-150 bpm, quema grasa óptima"},
+      {name:"Abdominales",icon:"6️⃣",sets:"3 × 20",tip:"Exhala al contraer, nunca jalones de cuello"}
+    ]},
+    {dia:"Domingo",tipo:"Descanso total",icon:"😴",ejercicios:[
+      {name:"Recuperación",icon:"💤",sets:"Día libre",tip:"El músculo crece en el descanso — respétalo"},
+      {name:"Hidratación extra",icon:"💧",sets:"≥ 2 litros",tip:"Repón electrolitos con agua mineral"}
+    ]}
+  ],
+
+  rutinasMuscleGain: [
+    {dia:"Lunes",tipo:"Pecho + Tríceps",icon:"💪",ejercicios:[
+      {name:"Press Banca Plano",icon:"🏋️",sets:"4 × 8–10",tip:"Hombros deprimidos, pecho al frente"},
+      {name:"Press Inclinado con Mancuernas",icon:"📐",sets:"3 × 10",tip:"Ángulo de 30-45°, no más"},
+      {name:"Fondos en Paralelas",icon:"⬇️",sets:"3 × al fallo",tip:"Inclínate adelante para más pecho"},
+      {name:"Extensiones Tríceps Polea",icon:"⬇️",sets:"3 × 12",tip:"Codos fijos, solo el antebrazo se mueve"}
+    ]},
+    {dia:"Martes",tipo:"Espalda + Bíceps",icon:"🔄",ejercicios:[
+      {name:"Dominadas (Peso corporal)",icon:"⬆️",sets:"4 × máx",tip:"Agarre supino activa más el bíceps"},
+      {name:"Remo con Barra T",icon:"🏋️",sets:"4 × 8",tip:"Pecho apoyado, contrae escápulas al tope"},
+      {name:"Jalón al Pecho",icon:"⬇️",sets:"3 × 10",tip:"Tira del codo hacia la cadera"},
+      {name:"Curl de Bíceps con Barra",icon:"💪",sets:"3 × 10",tip:"Supina las muñecas en el pico"}
+    ]},
+    {dia:"Miércoles",tipo:"Piernas",icon:"🦵",ejercicios:[
+      {name:"Sentadilla con Barra",icon:"🏋️",sets:"5 × 6–8",tip:"Profundidad al menos paralela, pies a 45°"},
+      {name:"Prensa de Pierna",icon:"📐",sets:"4 × 10",tip:"No bloquees la rodilla en la extensión"},
+      {name:"Curl Femoral",icon:"🦵",sets:"3 × 12",tip:"Contrae el isquio hasta el final del recorrido"},
+      {name:"Elevación de Gemelos",icon:"⬆️",sets:"4 × 20",tip:"Pausa de 1 seg arriba, baja lento"}
+    ]},
+    {dia:"Jueves",tipo:"Hombros + Abdomen",icon:"🙌",ejercicios:[
+      {name:"Press Militar con Barra",icon:"🏋️",sets:"4 × 8",tip:"Core activo, barra pasa cerca de la nariz"},
+      {name:"Elevaciones Laterales",icon:"↔️",sets:"4 × 12",tip:"Pulgares ligeramente abajo (jarra de agua)"},
+      {name:"Face Pull con Cuerda",icon:"🎯",sets:"3 × 15",tip:"Clave para salud del manguito rotador"},
+      {name:"Plancha + Rotación",icon:"🌀",sets:"3 × 30 seg",tip:"Caderas estables, rota solo el torso"}
+    ]},
+    {dia:"Viernes",tipo:"Full Body Fuerza",icon:"⚡",ejercicios:[
+      {name:"Peso Muerto Rumano",icon:"🏋️",sets:"4 × 6",tip:"Bisagra de cadera, espalda neutral"},
+      {name:"Press Banca Agarre Estrecho",icon:"💪",sets:"3 × 8",tip:"Codos a 45°, tríceps al máximo"},
+      {name:"Remo con Mancuerna",icon:"🔄",sets:"3 × 10 c/lado",tip:"Rodilla y mano apoyadas, tira del codo"},
+      {name:"Zancadas con Mancuernas",icon:"🦵",sets:"3 × 12 c/p",tip:"Rodilla trasera casi toca el suelo"}
+    ]},
+    {dia:"Sábado",tipo:"Cardio Suave + Movilidad",icon:"🌅",ejercicios:[
+      {name:"Cardio Zona 2",icon:"🚴",sets:"30 min",tip:"FC baja, favorece recuperación y mitocondrias"},
+      {name:"Stretching Dinámico",icon:"🧘",sets:"20 min",tip:"Prioriza cadera, dorsales y pectoral"}
+    ]},
+    {dia:"Domingo",tipo:"Descanso total",icon:"😴",ejercicios:[
+      {name:"Recuperación completa",icon:"💤",sets:"Día libre",tip:"La síntesis proteica ocurre en el descanso"},
+      {name:"Prepara tus comidas",icon:"🍽️",sets:"Meal prep",tip:"Cocina tus proteínas para la semana"}
+    ]}
+  ]
+};
+
+/* STATE */
+let CONFIG = JSON.parse(JSON.stringify(DEFAULTS));
+let currentRutinaTab = 'fat_loss';
+let currentSection = 'dashboard';
+
+/* ════════════════════════════════
+   STORAGE
+════════════════════════════════ */
+const ADMIN_KEY = 'ma_admin_config';
+
+function loadFromStorage(){
+  try{
+    const saved = localStorage.getItem(ADMIN_KEY);
+    if(saved){
+      const parsed = JSON.parse(saved);
+      CONFIG = deepMerge(JSON.parse(JSON.stringify(DEFAULTS)), parsed);
+    }
+  }catch(e){}
+  loadAPIKeys();
+  refreshAllUI();
+  toast('✅ Datos recargados desde localStorage');
+}
+
+function saveAllChanges(){
+  collectAllFormData();
+  // Also save API key
+  const apiKey = document.getElementById('apikey-anthropic');
+  if(apiKey) localStorage.setItem('ma_api_key', apiKey.value.trim());
+  localStorage.setItem(ADMIN_KEY, JSON.stringify(CONFIG));
+  toast('✅ Todos los cambios guardados correctamente');
+}
+
+function deepMerge(target, source){
+  for(const k in source){
+    if(source[k] && typeof source[k]==='object' && !Array.isArray(source[k])){
+      if(!target[k]) target[k]={};
+      deepMerge(target[k], source[k]);
+    } else {
+      target[k] = source[k];
+    }
+  }
+  return target;
+}
+
+/* ════════════════════════════════
+   NAVIGATION
+════════════════════════════════ */
+const SECTION_TITLES = {
+  dashboard: '📊 Dashboard',
+  usuarios: '👥 Usuarios',
+  prompts: '🤖 Prompts IA',
+  rutinas: '🏋️ Rutinas',
+  meditacion: '🧘 Meditación',
+  tienda: '🛍️ Tienda',
+  gamificacion: '🏆 Gamificación',
+  dieta: '🥗 Parámetros Dieta',
+  apariencia: '🎨 Apariencia',
+  apikeys: '🔑 API Keys',
+  config: '⚙️ Configuración'
+};
+
+function switchSection(name){
+  document.querySelectorAll('.tab-section').forEach(s=>s.style.display='none');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+name).style.display='';
+  document.getElementById('pageTitle').innerHTML = `<span>${SECTION_TITLES[name]}</span>`;
+  currentSection = name;
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick')===`switchSection('${name}')`){
+      n.classList.add('active');
+    }
+  });
+  renderSection(name);
+}
+
+function renderSection(name){
+  if(name==='dashboard') renderDashboard();
+  else if(name==='usuarios') renderUsuarios();
+  else if(name==='prompts') renderPrompts();
+  else if(name==='rutinas') renderRutinas();
+  else if(name==='meditacion') renderMeditacion();
+  else if(name==='tienda') renderTienda();
+  else if(name==='gamificacion') renderGamificacion();
+  else if(name==='dieta') renderDieta();
+  else if(name==='apariencia') renderApariencia();
+  else if(name==='apikeys') renderAPIKeys();
+  else if(name==='config') renderConfig();
+}
+
+function refreshAllUI(){
+  renderSection(currentSection);
+  updateDashboardStats();
+}
+
+/* ════════════════════════════════
+   DASHBOARD
+════════════════════════════════ */
+function renderDashboard(){
+  updateDashboardStats();
+  renderDashUsers();
+}
+
+function updateDashboardStats(){
+  const users = getUsers();
+  document.getElementById('s-usuarios').textContent = users.length;
+  document.getElementById('s-productos').textContent = CONFIG.productos.length;
+  document.getElementById('s-videos').textContent = CONFIG.meditacion.length;
+  document.getElementById('d-racha-pts').textContent = CONFIG.gamificacion.racha_pts + ' pts';
+  document.getElementById('d-fat-rate').textContent = CONFIG.dieta.fl_rate + ' kg';
+  document.getElementById('d-mus-rate').textContent = CONFIG.dieta.mg_rate + ' kg';
+}
+
+function renderDashUsers(){
+  const users = getUsers().slice(0,5);
+  const el = document.getElementById('dash-usuarios-list');
+  if(!users.length){el.innerHTML='<p style="color:var(--text2);font-size:13px;">Sin usuarios registrados aún.</p>';return;}
+  el.innerHTML = users.map(u=>`
+    <div class="user-row">
+      <div class="user-avatar">${(u.nombre||u.username||'?')[0].toUpperCase()}</div>
+      <div class="user-info">
+        <div class="user-name">${u.nombre||u.username||'—'}</div>
+        <div class="user-meta">${u.email} · ${u.puntos||0} pts · racha ${u.racha||0} días</div>
+      </div>
+      <span class="badge ${u.plan?.objetivo==='fat_loss'?'badge-orange':'badge-blue'}">${u.plan?.objetivo==='fat_loss'?'Fat Loss':'Muscle'}</span>
+    </div>`).join('');
+}
+
+function getUsers(){
+  try{return JSON.parse(localStorage.getItem('ma_users')||'[]');}catch(e){return[];}
+}
+
+/* ════════════════════════════════
+   USUARIOS
+════════════════════════════════ */
+let allUsers = [];
+
+function renderUsuarios(){
+  allUsers = getUsers();
+  renderUsersTable(allUsers);
+}
+
+function renderUsersTable(users){
+  const tbody = document.getElementById('users-tbody');
+  if(!users.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text2)">No hay usuarios</td></tr>';return;}
+  tbody.innerHTML = users.map((u,i)=>`
+    <tr>
+      <td><div style="font-weight:600">${u.nombre||'—'}</div><div style="font-size:11px;color:var(--text2)">@${u.username||'—'}</div></td>
+      <td style="color:var(--text2)">${u.email||'—'}</td>
+      <td><span class="badge ${u.plan?.objetivo==='fat_loss'?'badge-orange':'badge-blue'}">${u.plan?.objetivo==='fat_loss'?'Fat Loss':'Muscle Gain'}</span></td>
+      <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--warn)">${u.puntos||0}</span></td>
+      <td><span style="color:var(--accent3)">${u.racha||0} 🔥</span></td>
+      <td>
+        <div class="btn-group">
+          <button class="btn btn-secondary btn-sm" onclick="editUser(${i})"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.email}')"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterUsers(){
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  const filtered = allUsers.filter(u=>
+    (u.nombre||'').toLowerCase().includes(q) ||
+    (u.email||'').toLowerCase().includes(q) ||
+    (u.username||'').toLowerCase().includes(q)
+  );
+  renderUsersTable(filtered);
+}
+
+function editUser(idx){
+  const u = allUsers[idx];
+  const html=`<h3 style="font-family:'Syne',sans-serif;margin-bottom:16px;">✏️ Editar usuario</h3>
+    <div class="form-group"><label class="form-label">Nombre</label><input id="eu-nombre" value="${u.nombre||''}"></div>
+    <div class="form-group"><label class="form-label">Username</label><input id="eu-user" value="${u.username||''}"></div>
+    <div class="form-group"><label class="form-label">Puntos</label><input id="eu-pts" type="number" value="${u.puntos||0}"></div>
+    <div class="form-group"><label class="form-label">Racha (días)</label><input id="eu-racha" type="number" value="${u.racha||0}"></div>
+    <div class="form-group"><label class="form-label">Objetivo</label>
+      <select id="eu-obj"><option value="fat_loss" ${u.plan?.objetivo==='fat_loss'?'selected':''}>Fat Loss</option><option value="muscle_gain" ${u.plan?.objetivo==='muscle_gain'?'selected':''}>Muscle Gain</option></select>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" onclick="document.querySelector('.modal-over').remove()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveUserEdit('${u.email}')">Guardar</button>
+    </div>`;
+  showModal(html);
+}
+
+function saveUserEdit(email){
+  const users = getUsers();
+  const i = users.findIndex(x=>x.email===email);
+  if(i===-1) return;
+  users[i].nombre = document.getElementById('eu-nombre').value;
+  users[i].username = document.getElementById('eu-user').value;
+  users[i].puntos = parseInt(document.getElementById('eu-pts').value)||0;
+  users[i].racha = parseInt(document.getElementById('eu-racha').value)||0;
+  if(!users[i].plan) users[i].plan={};
+  users[i].plan.objetivo = document.getElementById('eu-obj').value;
+  localStorage.setItem('ma_users', JSON.stringify(users));
+  document.querySelector('.modal-over')?.remove();
+  renderUsuarios();
+  toast('✅ Usuario actualizado');
+}
+
+function deleteUser(email){
+  if(!confirm(`¿Eliminar el usuario ${email}?`)) return;
+  const users = getUsers().filter(u=>u.email!==email);
+  localStorage.setItem('ma_users', JSON.stringify(users));
+  renderUsuarios();
+  updateDashboardStats();
+  toast('🗑️ Usuario eliminado', 'warn');
+}
+
+function clearAllUsers(){
+  if(!confirm('⚠️ ¿Eliminar TODOS los usuarios? Esta acción no se puede deshacer.')) return;
+  localStorage.removeItem('ma_users');
+  localStorage.removeItem('ma_current');
+  renderUsuarios();
+  updateDashboardStats();
+  toast('🗑️ Todos los usuarios eliminados', 'warn');
+}
+
+function showModal(html){
+  const ov = document.createElement('div');
+  ov.className='modal-over';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:800;display:flex;align-items:center;justify-content:center;padding:16px';
+  const box = document.createElement('div');
+  box.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:440px;width:100%;max-height:82vh;overflow-y:auto';
+  box.innerHTML=html;
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove()});
+}
+
+/* ════════════════════════════════
+   PROMPTS
+════════════════════════════════ */
+function renderPrompts(){
+  document.getElementById('p-system').value = CONFIG.system_prompt;
+  document.getElementById('p-scanner').value = CONFIG.scanner_prompt;
+}
+
+function savePrompt(type){
+  if(type==='system') CONFIG.system_prompt = document.getElementById('p-system').value;
+  else CONFIG.scanner_prompt = document.getElementById('p-scanner').value;
+  localStorage.setItem(ADMIN_KEY, JSON.stringify(CONFIG));
+  toast('✅ Prompt guardado');
+}
+
+function resetPrompt(type){
+  if(!confirm('¿Restaurar el prompt original?')) return;
+  if(type==='system'){CONFIG.system_prompt=DEFAULTS.system_prompt;document.getElementById('p-system').value=DEFAULTS.system_prompt;}
+  else{CONFIG.scanner_prompt=DEFAULTS.scanner_prompt;document.getElementById('p-scanner').value=DEFAULTS.scanner_prompt;}
+  toast('✅ Prompt restaurado al original');
+}
+
+/* ════════════════════════════════
+   RUTINAS
+════════════════════════════════ */
+function switchRutinaTab(type){
+  currentRutinaTab = type;
+  document.getElementById('rt-fl-btn').classList.toggle('active', type==='fat_loss');
+  document.getElementById('rt-mg-btn').classList.toggle('active', type==='muscle_gain');
+  renderRutinas();
+}
+
+function renderRutinas(){
+  const rutinas = currentRutinaTab==='fat_loss' ? CONFIG.rutinasFatLoss : CONFIG.rutinasMuscleGain;
+  const container = document.getElementById('rutinas-editor');
+  container.innerHTML = rutinas.map((day,di)=>`
+    <div class="accord-item">
+      <div class="accord-header" onclick="toggleAccord('day-${di}')">
+        <span>${day.icon} ${day.dia} — <span style="color:var(--text2);font-weight:400">${day.tipo}</span></span>
+        <i class="fas fa-chevron-down" style="color:var(--text3);font-size:12px"></i>
+      </div>
+      <div class="accord-body" id="day-${di}">
+        <div class="grid-2" style="margin-bottom:12px">
+          <div class="form-group"><label class="form-label">Día</label><input value="${day.dia}" onchange="updateDayField(${di},'dia',this.value)"></div>
+          <div class="form-group"><label class="form-label">Tipo / Descripción</label><input value="${day.tipo}" onchange="updateDayField(${di},'tipo',this.value)"></div>
+          <div class="form-group"><label class="form-label">Emoji del día</label><input value="${day.icon}" style="max-width:70px" onchange="updateDayField(${di},'icon',this.value)"></div>
+        </div>
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:8px;letter-spacing:.4px">Ejercicios</div>
+        <div id="exers-${di}">
+          ${day.ejercicios.map((ex,ei)=>`
+          <div class="exercise-edit-row" id="exrow-${di}-${ei}">
+            <div style="flex:1;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">
+              <div><div class="form-label">Emoji</div><input value="${ex.icon}" onchange="updateExField(${di},${ei},'icon',this.value)" style="max-width:60px"></div>
+              <div style="grid-column:span 1"><div class="form-label">Nombre</div><input value="${ex.name}" onchange="updateExField(${di},${ei},'name',this.value)"></div>
+              <div><div class="form-label">Series / Tiempo</div><input value="${ex.sets}" onchange="updateExField(${di},${ei},'sets',this.value)"></div>
+              <div style="grid-column:span 1"><div class="form-label">Tip / Cue</div><input value="${ex.tip}" onchange="updateExField(${di},${ei},'tip',this.value)"></div>
+            </div>
+            <button class="del-btn" onclick="deleteExercise(${di},${ei})"><i class="fas fa-trash"></i></button>
+          </div>`).join('')}
+        </div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="addExercise(${di})"><i class="fas fa-plus"></i> Agregar ejercicio</button>
+      </div>
+    </div>`).join('');
+}
+
+function toggleAccord(id){
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+function updateDayField(di,field,val){
+  const rutinas = currentRutinaTab==='fat_loss' ? CONFIG.rutinasFatLoss : CONFIG.rutinasMuscleGain;
+  rutinas[di][field]=val;
+}
+
+function updateExField(di,ei,field,val){
+  const rutinas = currentRutinaTab==='fat_loss' ? CONFIG.rutinasFatLoss : CONFIG.rutinasMuscleGain;
+  rutinas[di].ejercicios[ei][field]=val;
+}
+
+function deleteExercise(di,ei){
+  const rutinas = currentRutinaTab==='fat_loss' ? CONFIG.rutinasFatLoss : CONFIG.rutinasMuscleGain;
+  rutinas[di].ejercicios.splice(ei,1);
+  renderRutinas();
+  toast('🗑️ Ejercicio eliminado','warn');
+}
+
+function addExercise(di){
+  const rutinas = currentRutinaTab==='fat_loss' ? CONFIG.rutinasFatLoss : CONFIG.rutinasMuscleGain;
+  rutinas[di].ejercicios.push({name:"Nuevo ejercicio",icon:"💪",sets:"3 × 10",tip:"Descripción del movimiento"});
+  renderRutinas();
+  document.getElementById('day-'+di).classList.add('open');
+}
+
+/* ════════════════════════════════
+   MEDITACIÓN
+════════════════════════════════ */
+function renderMeditacion(){
+  const el = document.getElementById('med-list');
+  el.innerHTML = CONFIG.meditacion.map((v,i)=>`
+    <div class="product-item">
+      <div class="product-item-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:24px">${v.icon}</span>
+          <div>
+            <div style="font-weight:600;font-size:14px">${v.titulo}</div>
+            <div style="font-size:12px;color:var(--text2)">${v.sub} · ${v.dur}</div>
+          </div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteMeditacion(${i})"><i class="fas fa-trash"></i></button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;font-family:monospace">${v.yt}</div>
+    </div>`).join('');
+}
+
+function addMeditacion(){
+  const titulo=document.getElementById('med-titulo').value.trim();
+  if(!titulo){toast('Completa el título','error');return;}
+  CONFIG.meditacion.push({
+    titulo,
+    sub: document.getElementById('med-sub').value||'',
+    dur: document.getElementById('med-dur').value||'',
+    icon: document.getElementById('med-icon').value||'🧘',
+    yt: document.getElementById('med-yt').value||''
+  });
+  ['med-titulo','med-sub','med-dur','med-icon','med-yt'].forEach(id=>document.getElementById(id).value='');
+  renderMeditacion();
+  updateDashboardStats();
+  toast('✅ Video agregado');
+}
+
+function deleteMeditacion(i){
+  CONFIG.meditacion.splice(i,1);
+  renderMeditacion();
+  updateDashboardStats();
+  toast('🗑️ Video eliminado','warn');
+}
+
+/* ════════════════════════════════
+   TIENDA
+════════════════════════════════ */
+function renderTienda(){
+  const el = document.getElementById('prod-list');
+  el.innerHTML = CONFIG.productos.map((p,i)=>`
+    <div class="product-item">
+      <div class="product-item-header">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:28px">${p.emoji}</span>
+          <div>
+            <div style="font-weight:600;font-size:14px">${p.nombre}</div>
+            <div style="font-size:12px;color:var(--text2)">${p.desc}</div>
+            <div style="margin-top:4px;display:flex;gap:8px">
+              <span class="badge badge-green">€${p.precioEUR}</span>
+              <span class="badge badge-yellow">${p.puntos} pts</span>
+              <span class="badge badge-blue">Stock: ${p.stock}</span>
+            </div>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-secondary btn-sm" onclick="editProducto(${i})"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProducto(${i})"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function addProducto(){
+  const nombre=document.getElementById('prod-nombre').value.trim();
+  if(!nombre){toast('Completa el nombre','error');return;}
+  CONFIG.productos.push({
+    id: Date.now(),
+    nombre,
+    emoji: document.getElementById('prod-emoji').value||'📦',
+    precioEUR: parseFloat(document.getElementById('prod-precio').value)||0,
+    puntos: parseInt(document.getElementById('prod-puntos').value)||0,
+    stock: parseInt(document.getElementById('prod-stock').value)||0,
+    desc: document.getElementById('prod-desc').value||''
+  });
+  ['prod-nombre','prod-emoji','prod-precio','prod-puntos','prod-stock','prod-desc'].forEach(id=>document.getElementById(id).value='');
+  renderTienda();
+  updateDashboardStats();
+  toast('✅ Producto agregado');
+}
+
+function editProducto(i){
+  const p = CONFIG.productos[i];
+  showModal(`<h3 style="font-family:'Syne',sans-serif;margin-bottom:16px;">✏️ Editar producto</h3>
+    <div class="form-group"><label class="form-label">Nombre</label><input id="ep-nombre" value="${p.nombre}"></div>
+    <div class="form-group"><label class="form-label">Emoji</label><input id="ep-emoji" value="${p.emoji}" style="max-width:70px"></div>
+    <div class="form-group"><label class="form-label">Precio (€)</label><input id="ep-precio" type="number" value="${p.precioEUR}"></div>
+    <div class="form-group"><label class="form-label">Puntos</label><input id="ep-puntos" type="number" value="${p.puntos}"></div>
+    <div class="form-group"><label class="form-label">Stock</label><input id="ep-stock" type="number" value="${p.stock}"></div>
+    <div class="form-group"><label class="form-label">Descripción</label><input id="ep-desc" value="${p.desc}"></div>
+    <div class="btn-group">
+      <button class="btn btn-secondary" onclick="document.querySelector('.modal-over').remove()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveProductoEdit(${i})">Guardar</button>
+    </div>`);
+}
+
+function saveProductoEdit(i){
+  CONFIG.productos[i].nombre = document.getElementById('ep-nombre').value;
+  CONFIG.productos[i].emoji = document.getElementById('ep-emoji').value;
+  CONFIG.productos[i].precioEUR = parseFloat(document.getElementById('ep-precio').value)||0;
+  CONFIG.productos[i].puntos = parseInt(document.getElementById('ep-puntos').value)||0;
+  CONFIG.productos[i].stock = parseInt(document.getElementById('ep-stock').value)||0;
+  CONFIG.productos[i].desc = document.getElementById('ep-desc').value;
+  document.querySelector('.modal-over')?.remove();
+  renderTienda();
+  toast('✅ Producto actualizado');
+}
+
+function deleteProducto(i){
+  CONFIG.productos.splice(i,1);
+  renderTienda();
+  updateDashboardStats();
+  toast('🗑️ Producto eliminado','warn');
+}
+
+/* ════════════════════════════════
+   GAMIFICACIÓN
+════════════════════════════════ */
+function renderGamificacion(){
+  // Puntos por acción
+  const ptsEl = document.getElementById('puntos-editor');
+  const acciones = [
+    {key:'foto_progreso',label:'📸 Foto de progreso'},
+    {key:'foto_balanza',label:'⚖️ Foto de balanza'},
+    {key:'scan_alimento',label:'🔬 Scan de alimento'},
+    {key:'entreno_completado',label:'💪 Entreno completado'},
+    {key:'vaso_agua',label:'💧 Vaso de agua'},
+    {key:'racha_bonus',label:'🔥 Bonus de racha'},
+  ];
+  ptsEl.innerHTML = acciones.map(a=>`
+    <div class="form-group" style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <label style="flex:1;font-size:13px;font-weight:500">${a.label}</label>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" id="pts-${a.key}" value="${CONFIG.puntos_acciones[a.key]||0}" style="width:70px;text-align:center" onchange="updatePts('${a.key}',this.value)">
+        <span style="font-size:12px;color:var(--warn)">pts</span>
+      </div>
+    </div>`).join('') + `<button class="btn btn-primary btn-full" onclick="saveGamificacion()"><i class="fas fa-save"></i> Guardar puntos</button>`;
+
+  // Racha
+  document.getElementById('g-racha-pts').value = CONFIG.gamificacion.racha_pts;
+  document.getElementById('g-racha-freq').value = CONFIG.gamificacion.racha_freq;
+  document.getElementById('g-racha-msg').value = CONFIG.gamificacion.racha_msg;
+
+  // Logros
+  const logrosEl = document.getElementById('logros-editor');
+  logrosEl.innerHTML = CONFIG.logros.map((l,i)=>`
+    <div class="exercise-edit-row">
+      <div style="flex:1;display:grid;grid-template-columns:50px 1fr 1fr 1fr 80px;gap:8px;align-items:end">
+        <div><div class="form-label">Emoji</div><input value="${l.icon}" onchange="updateLogro(${i},'icon',this.value)" style="max-width:50px"></div>
+        <div><div class="form-label">Nombre</div><input value="${l.name}" onchange="updateLogro(${i},'name',this.value)"></div>
+        <div style="grid-column:span 1"><div class="form-label">Descripción</div><input value="${l.desc}" onchange="updateLogro(${i},'desc',this.value)"></div>
+        <div><div class="form-label">ID (clave)</div><input value="${l.id}" onchange="updateLogro(${i},'id',this.value)" style="font-family:monospace;font-size:11px"></div>
+        <div><div class="form-label">Puntos</div><input type="number" value="${l.puntos||0}" onchange="updateLogro(${i},'puntos',parseInt(this.value))" style="text-align:center"></div>
+      </div>
+      <button class="del-btn" onclick="deleteLogro(${i})"><i class="fas fa-trash"></i></button>
+    </div>`).join('') + `
+    <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="addLogro()"><i class="fas fa-plus"></i> Agregar logro</button>`;
+}
+
+function updatePts(key,val){CONFIG.puntos_acciones[key]=parseInt(val)||0;}
+function updateLogro(i,field,val){CONFIG.logros[i][field]=val;}
+
+function deleteLogro(i){
+  CONFIG.logros.splice(i,1);
+  renderGamificacion();
+}
+
+function addLogro(){
+  CONFIG.logros.push({id:'nuevo_logro',icon:'🏆',name:'Nuevo logro',desc:'Descripción del logro',puntos:0});
+  renderGamificacion();
+}
+
+function saveGamificacion(){
+  CONFIG.gamificacion.racha_pts = parseInt(document.getElementById('g-racha-pts').value)||50;
+  CONFIG.gamificacion.racha_freq = parseInt(document.getElementById('g-racha-freq').value)||7;
+  CONFIG.gamificacion.racha_msg = document.getElementById('g-racha-msg').value;
+  acciones_keys.forEach(k=>{
+    const el = document.getElementById('pts-'+k);
+    if(el) CONFIG.puntos_acciones[k] = parseInt(el.value)||0;
+  });
+  localStorage.setItem(ADMIN_KEY, JSON.stringify(CONFIG));
+  toast('✅ Gamificación guardada');
+}
+
+const acciones_keys=['foto_progreso','foto_balanza','scan_alimento','entreno_completado','vaso_agua','racha_bonus'];
+
+/* ════════════════════════════════
+   DIETA
+════════════════════════════════ */
+function renderDieta(){
+  const d = CONFIG.dieta;
+  document.getElementById('d-fl-a').value = d.fl_a;
+  document.getElementById('d-fl-e').value = d.fl_e;
+  document.getElementById('d-fl-rate').value = d.fl_rate;
+  document.getElementById('d-fl-min').value = d.fl_min;
+  document.getElementById('d-fl-hidra').value = d.fl_hidra;
+  document.getElementById('d-fl-vaso').value = d.fl_vaso;
+  document.getElementById('d-mg-a').value = d.mg_a;
+  document.getElementById('d-mg-e').value = d.mg_e;
+  document.getElementById('d-mg-rate').value = d.mg_rate;
+  document.getElementById('d-mg-hidra').value = d.mg_hidra;
+  document.getElementById('d-mg-vaso').value = d.mg_vaso;
+  document.getElementById('d-meses').value = d.meses;
+  document.getElementById('d-snp').value = d.snp||'';
+  document.getElementById('d-sne').value = d.sne||'';
+  document.getElementById('d-candida-dur').value = d.candida_dur;
+  document.getElementById('d-candida-elim').value = d.candida_elim||'';
+}
+
+function saveDieta(){
+  CONFIG.dieta = {
+    fl_a: parseFloat(document.getElementById('d-fl-a').value)||75,
+    fl_e: parseFloat(document.getElementById('d-fl-e').value)||25,
+    fl_rate: parseFloat(document.getElementById('d-fl-rate').value)||2.5,
+    fl_min: parseFloat(document.getElementById('d-fl-min').value)||45,
+    fl_hidra: parseFloat(document.getElementById('d-fl-hidra').value)||7,
+    fl_vaso: parseInt(document.getElementById('d-fl-vaso').value)||250,
+    mg_a: parseFloat(document.getElementById('d-mg-a').value)||66,
+    mg_e: parseFloat(document.getElementById('d-mg-e').value)||34,
+    mg_rate: parseFloat(document.getElementById('d-mg-rate').value)||1.2,
+    mg_hidra: parseFloat(document.getElementById('d-mg-hidra').value)||8,
+    mg_vaso: parseInt(document.getElementById('d-mg-vaso').value)||250,
+    meses: parseInt(document.getElementById('d-meses').value)||6,
+    snp: document.getElementById('d-snp').value,
+    sne: document.getElementById('d-sne').value,
+    candida_dur: parseInt(document.getElementById('d-candida-dur').value)||2,
+    candida_elim: document.getElementById('d-candida-elim').value
+  };
+  localStorage.setItem(ADMIN_KEY, JSON.stringify(CONFIG));
+  updateDashboardStats();
+  toast('✅ Parámetros de dieta guardados');
+}
+
+/* ════════════════════════════════
+   APARIENCIA
+════════════════════════════════ */
+function renderApariencia(){
+  const a = CONFIG.apariencia;
+  document.getElementById('t-appname').value = a.appname||'';
+  document.getElementById('t-slogan').value = a.slogan||'';
+  document.getElementById('t-emoji').value = a.emoji||'⚡';
+  document.getElementById('t-welcome').value = a.welcome||'';
+  document.getElementById('t-pts-label').value = a.pts_label||'pts';
+  document.getElementById('c-bg').value = a.c_bg||'#0b0f14';
+  document.getElementById('c-bg-txt').value = a.c_bg||'#0b0f14';
+  document.getElementById('c-accent').value = a.c_accent||'#00e5a0';
+  document.getElementById('c-accent-txt').value = a.c_accent||'#00e5a0';
+  document.getElementById('c-accent2').value = a.c_accent2||'#00b8d9';
+  document.getElementById('c-accent2-txt').value = a.c_accent2||'#00b8d9';
+  document.getElementById('c-accent3').value = a.c_accent3||'#ff6b35';
+  document.getElementById('c-accent3-txt').value = a.c_accent3||'#ff6b35';
+  document.getElementById('c-accent4').value = a.c_accent4||'#a78bfa';
+  document.getElementById('c-accent4-txt').value = a.c_accent4||'#a78bfa';
+
+  // Sync color pickers to text and preview
+  ['accent','accent2','accent3','accent4','bg'].forEach(k=>{
+    const picker = document.getElementById('c-'+k);
+    const txt = document.getElementById('c-'+k+'-txt');
+    picker.addEventListener('input',()=>{txt.value=picker.value;updatePreview(k,picker.value)});
+    txt.addEventListener('input',()=>{picker.value=txt.value;updatePreview(k,txt.value)});
+  });
+}
+
+function updatePreview(key,color){
+  const el = document.getElementById('prev-'+key);
+  if(el) el.style.background=color;
+}
+
+function saveApariencia(){
+  CONFIG.apariencia = {
+    appname: document.getElementById('t-appname').value,
+    slogan: document.getElementById('t-slogan').value,
+    emoji: document.getElementById('t-emoji').value,
+    welcome: document.getElementById('t-welcome').value,
+    pts_label: document.getElementById('t-pts-label').value,
+    c_bg: document.getElementById('c-bg').value,
+    c_accent: document.getElementById('c-accent').value,
+    c_accent2: document.getElementById('c-accent2').value,
+    c_accent3: document.getElementById('c-accent3').value,
+    c_accent4: document.getElementById('c-accent4').value
+  };
+  localStorage.setItem(ADMIN_KEY, JSON.stringify(CONFIG));
+  toast('✅ Apariencia guardada');
+}
+
+/* ════════════════════════════════
+   CONFIGURACIÓN
+════════════════════════════════ */
+function renderConfig(){
+  const c = CONFIG.config;
+  document.getElementById('cfg-model').value = c.model;
+  document.getElementById('cfg-tokens').value = c.max_tokens;
+  document.getElementById('cfg-temp').value = c.temperatura;
+  document.getElementById('f-scanner').checked = c.f_scanner!==false;
+  document.getElementById('f-chat').checked = c.f_chat!==false;
+  document.getElementById('f-tienda').checked = c.f_tienda!==false;
+  document.getElementById('f-logros').checked = c.f_logros!==false;
+  document.getElementById('f-fotos').checked = c.f_fotos!==false;
+  document.getElementById('f-mente').checked = c.f_mente!==false;
+}
+
+/* ════════════════════════════════
+   COLLECT ALL FORM DATA
+════════════════════════════════ */
+function collectAllFormData(){
+  // Prompts
+  try{CONFIG.system_prompt = document.getElementById('p-system').value;}catch(e){}
+  try{CONFIG.scanner_prompt = document.getElementById('p-scanner').value;}catch(e){}
+
+  // Config
+  try{
+    CONFIG.config = {
+      model: document.getElementById('cfg-model').value,
+      max_tokens: parseInt(document.getElementById('cfg-tokens').value)||1000,
+      temperatura: parseFloat(document.getElementById('cfg-temp').value)||0.7,
+      f_scanner: document.getElementById('f-scanner').checked,
+      f_chat: document.getElementById('f-chat').checked,
+      f_tienda: document.getElementById('f-tienda').checked,
+      f_logros: document.getElementById('f-logros').checked,
+      f_fotos: document.getElementById('f-fotos').checked,
+      f_mente: document.getElementById('f-mente').checked
+    };
+  }catch(e){}
+
+  // Dieta
+  try{saveDieta();}catch(e){}
+  // Apariencia
+  try{saveApariencia();}catch(e){}
+  // Gamificación
+  try{saveGamificacion();}catch(e){}
+}
+
+/* ════════════════════════════════
+   GENERAR PARCHE
+════════════════════════════════ */
+function generatePatch(){
+  collectAllFormData();
+  const a = CONFIG.apariencia;
+  const d = CONFIG.dieta;
+  const c = CONFIG.config;
+  const patch = `/* ══ PARCHE DE CONFIGURACIÓN — Generado desde Admin Panel ══ */
+
+/* COLORES */
+:root {
+  --bg: ${a.c_bg};
+  --accent: ${a.c_accent};
+  --accent2: ${a.c_accent2};
+  --accent3: ${a.c_accent3};
+  --accent4: ${a.c_accent4};
+}
+
+/* SYSTEM PROMPT */
+const SYSTEM_PROMPT = \`${CONFIG.system_prompt.replace(/`/g,'\\`')}\`;
+
+/* SCANNER SYSTEM */
+const SCANNER_SYSTEM = \`${CONFIG.scanner_prompt.replace(/`/g,'\\`')}\`;
+
+/* MODELO IA */
+// Actualizado para GLM-5 Turbo (ZhipuAI):
+// "${c.model}" en ambas llamadas callClaude() y scanFoodImage()
+// max_tokens: ${c.max_tokens}
+
+/* DIETA — Fat Loss */
+// fl_rate (baja/mes): ${d.fl_rate} kg
+// fl_min (peso mín): ${d.fl_min} kg  
+// fl_hidra: peso / ${d.fl_hidra} = vasos
+// Línea: meta=+(peso-(m*${d.fl_rate})).toFixed(1); if(meta<${d.fl_min})meta=${d.fl_min};
+
+/* DIETA — Muscle Gain */
+// mg_rate (sube/mes): ${d.mg_rate} kg
+// mg_hidra: peso / ${d.mg_hidra} = vasos
+// Línea: meta=+(peso+(m*${d.mg_rate})).toFixed(1);
+
+/* PRODUCTOS */
+const productos = ${JSON.stringify(CONFIG.productos, null, 2)};
+
+/* MEDITACIÓN */
+const meditacionVideos = ${JSON.stringify(CONFIG.meditacion, null, 2)};
+
+/* LOGROS */
+const LOGROS_DEF = ${JSON.stringify(CONFIG.logros, null, 2)};
+
+/* RUTINAS FAT LOSS */
+const rutinasFatLoss = ${JSON.stringify(CONFIG.rutinasFatLoss, null, 2)};
+
+/* RUTINAS MUSCLE GAIN */
+const rutinasMusclGain = ${JSON.stringify(CONFIG.rutinasMuscleGain, null, 2)};
+
+/* APP NOMBRE */
+// Busca "Metabolismo Activo" y reemplaza por "${a.appname}"
+// Slogan: "${a.slogan}"
+// Emoji logo: "${a.emoji}"
+`;
+  document.getElementById('patch-output').style.display='';
+  document.getElementById('patch-code').value = patch;
+  toast('✅ Parche generado — cópialo y aplícalo al HTML principal');
+}
+
+function copyPatch(){
+  const el = document.getElementById('patch-code');
+  el.select();
+  document.execCommand('copy');
+  toast('✅ Copiado al portapapeles');
+}
+
+/* ════════════════════════════════
+   EXPORT / IMPORT
+════════════════════════════════ */
+function exportConfig(){
+  collectAllFormData();
+  const blob = new Blob([JSON.stringify(CONFIG, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'metabolismo_admin_config.json';
+  a.click();
+  toast('✅ Configuración exportada como JSON');
+}
+
+function importConfig(){
+  const inp = document.createElement('input');
+  inp.type='file'; inp.accept='.json';
+  inp.onchange = e => {
+    const r = new FileReader();
+    r.onload = ev => {
+      try{
+        const imported = JSON.parse(ev.target.result);
+        CONFIG = deepMerge(JSON.parse(JSON.stringify(DEFAULTS)), imported);
+        localStorage.setItem(ADMIN_KEY, JSON.stringify(CONFIG));
+        refreshAllUI();
+        toast('✅ Configuración importada correctamente');
+      }catch(e){toast('❌ Error al parsear el JSON','error');}
+    };
+    r.readAsText(e.target.files[0]);
+  };
+  inp.click();
+}
+
+/* ════════════════════════════════
+   TOAST
+════════════════════════════════ */
+function toast(msg, type='success'){
+  const el = document.getElementById('toastAdmin');
+  el.textContent = msg;
+  el.className = `toast-admin show ${type}`;
+  setTimeout(()=>el.className='toast-admin', 3200);
+}
+
+/* ════════════════════════════════
+   API KEYS
+════════════════════════════════ */
+function renderAPIKeys(){
+  loadAPIKeys();
+  // Update model display from config
+  try{
+    const modelEl = document.getElementById('apikey-model');
+    if(modelEl && CONFIG.config && CONFIG.config.model) modelEl.textContent = CONFIG.config.model;
+  }catch(e){}
+  // Load last test date
+  try{
+    const lastTest = localStorage.getItem('ma_api_last_test');
+    const el = document.getElementById('apikey-last-test');
+    if(el) el.textContent = lastTest || 'Nunca';
+  }catch(e){}
+}
+
+function loadAPIKeys(){
+  const key = localStorage.getItem('ma_api_key') || '';
+  const input = document.getElementById('apikey-anthropic');
+  if(input) input.value = key;
+  updateAPIKeyStatus(key);
+  // Update admin config to reflect API key status
+  try{
+    const saved = localStorage.getItem(ADMIN_KEY);
+    let config = saved ? JSON.parse(saved) : {};
+    config.apiKey = !!key;
+    localStorage.setItem(ADMIN_KEY, JSON.stringify(config));
+  }catch(e){}
+}
+
+function updateAPIKeyStatus(key){
+  const dot = document.getElementById('apikey-dot');
+  const label = document.getElementById('apikey-label');
+  if(!dot || !label) return;
+  if(key && key.trim().length > 0){
+    dot.style.background = 'var(--success)';
+    label.style.color = 'var(--success)';
+    label.textContent = 'Configurada';
+  } else {
+    dot.style.background = 'var(--danger)';
+    label.style.color = 'var(--danger)';
+    label.textContent = 'No configurada';
+  }
+}
+
+function toggleAPIKeyVisibility(){
+  const input = document.getElementById('apikey-anthropic');
+  const icon = document.getElementById('apikey-toggle-icon');
+  if(!input || !icon) return;
+  if(input.type === 'password'){
+    input.type = 'text';
+    icon.className = 'fas fa-eye-slash';
+  } else {
+    input.type = 'password';
+    icon.className = 'fas fa-eye';
+  }
+}
+
+function saveAPIKey(){
+  const key = document.getElementById('apikey-anthropic').value.trim();
+  localStorage.setItem('ma_api_key', key);
+  updateAPIKeyStatus(key);
+  // Update admin config
+  try{
+    const saved = localStorage.getItem(ADMIN_KEY);
+    let config = saved ? JSON.parse(saved) : {};
+    config.apiKey = !!key;
+    localStorage.setItem(ADMIN_KEY, JSON.stringify(config));
+  }catch(e){}
+  toast(key ? '✅ API Key guardada correctamente' : '⚠️ API Key eliminada', key ? 'success' : 'warn');
+}
+
+async function testAPIKey(){
+  const key = document.getElementById('apikey-anthropic').value.trim();
+  if(!key){
+    toast('❌ Ingresa una API Key antes de probar', 'error');
+    return;
+  }
+  const btn = document.getElementById('apikey-test-btn');
+  if(btn){
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Probando...';
+  }
+  try{
+    const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + key
+      },
+      body: JSON.stringify({
+        model: 'glm-4-flash',
+        max_tokens: 10,
+        messages: [{role: 'user', content: 'test'}]
+      })
+    });
+    if(response.ok){
+      toast('✅ Conexión exitosa — API Key válida', 'success');
+      const now = new Date();
+      const dateStr = now.toLocaleString('es-ES', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      localStorage.setItem('ma_api_last_test', dateStr);
+      const lastTestEl = document.getElementById('apikey-last-test');
+      if(lastTestEl) lastTestEl.textContent = dateStr;
+    } else {
+      const errData = await response.json().catch(()=>({}));
+      const errMsg = errData.error?.message || `Error HTTP ${response.status}`;
+      toast('❌ Error de conexión: ' + errMsg, 'error');
+    }
+  } catch(e){
+    toast('❌ Error de red: ' + e.message, 'error');
+  } finally {
+    if(btn){
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-plug"></i> Test Connection';
+    }
+  }
+}
+
+/* ════════════════════════════════
+   INIT
+════════════════════════════════ */
+loadFromStorage();
+</script>
+</body>
+</html>
